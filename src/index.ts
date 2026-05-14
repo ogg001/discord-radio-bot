@@ -1,5 +1,6 @@
 import 'dotenv/config';
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import { spawn } from 'node:child_process';
+import type { ChildProcessWithoutNullStreams } from 'node:child_process';
 import ffmpegPath from 'ffmpeg-static';
 import {
   ChatInputCommandInteraction,
@@ -117,9 +118,13 @@ function createFfmpegProcess(url: string): ChildProcessWithoutNullStreams {
     'pipe:1',
   ];
 
-  const ffmpeg = spawn(ffmpegPath!, args, {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  if (!ffmpegPath) {
+    throw new Error('FFmpeg binary path not found.');
+  }
+
+  const ffmpeg = spawn(ffmpegPath as unknown as string, args, {
+    stdio: ['pipe', 'pipe', 'pipe'],
+  }) as unknown as ChildProcessWithoutNullStreams;
 
   ffmpeg.stderr.on('data', (chunk: Buffer) => {
     if (debugFfmpeg) {
